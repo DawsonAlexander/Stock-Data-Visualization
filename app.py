@@ -16,6 +16,40 @@
 # Create the date_choice function that prompts the user to enter both the start and end date of the data 
 # make sure that it is in yyyy-mm-dd format
 # make sure that the end date is not before the start date
+def date_choice(function, symbol, api_key):
+    while True:
+        # get and validate start date
+        while True:
+            start_input = input("Enter the start date (YYYY-MM-DD): ").strip()
+            try:
+                start_date = datetime.strptime(start_input, "%Y-%m-%d")
+                break
+            except ValueError:
+                print("Invalid format. Please enter the date as YYYY-MM-DD.")
+
+        # get and validate end date
+        while True:
+            end_input = input("Enter the end date (YYYY-MM-DD): ").strip()
+            try:
+                end_date = datetime.strptime(end_input, "%Y-%m-%d")
+                break
+            except ValueError:
+                print("Invalid format. Please enter the date as YYYY-MM-DD.")
+
+        # make sure end date is not before start date
+        if end_date < start_date:
+            print("Error: End date cannot be before the start date. Please try again.")
+            continue
+
+        # call the existing app_data function
+        data = app_data(function, symbol, start_input, end_input, api_key)
+
+        # if app_data returns empty, prompt user to pick new dates
+        if not data:
+            print("No data found for that date range. Please choose a different range.")
+            continue
+
+        return start_input, end_input, data
 
 
 
