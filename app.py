@@ -44,7 +44,7 @@ def time_series():
     # ask the user for either 1,2,3,4
     # if not prompt them again
     while(True):
-        print("-----------------\nChoose an option:\n1)Intra day\n2)Daily\n3)Weekly\n4)Monthly")
+        print("-----------------\nChoose an option:\n1)Intra Day\n2)Daily\n3)Weekly\n4)Monthly")
         time_series_choice = input("Please make a selection: ")
         if time_series_choice == "1":
             return "TIME_SERIES_INTRADAY"
@@ -98,6 +98,64 @@ def date_choice(function, symbol, api_key):
 
         return start_input, end_input, data
 
+        
+
+    
+
+
+# Create a app_data function that gets the stock data from alpha vantage using the symbol and function the user selected 
+# and return it to the main function
+def app_data(function, symbol, start_date, end_date, api_key):
+    # If the function selected is Intraday then have the url have an interval of 5mins
+
+    #for testing use this 
+    #Intraday is  a premimum end point meaning you must use 'demo' key to get results
+    api_key="demo"
+    if function == "TIME_SERIES_INTRADAY":
+        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey=demo'
+        r = requests.get(url)
+        data = r.json()
+        
+        #Extract the correct time series key
+        time_series = data.get("Time Series (5min)", {})
+        
+        # For error checking
+        print(time_series)
+        return time_series
+    
+    else:
+        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={api_key}'
+        r = requests.get(url)
+        data = r.json()
+
+        # Get common keys for daily, weekly, and monthly
+        time_series = (
+            data.get("Time Series (Daily)") or
+            data.get("Weekly Time Series") or 
+            data.get("Monthly Time Series") or {}
+        )
+
+        # Make sure it is in yyyy-mm-dd format
+        range_start = datetime.strptime(start_date, '%Y-%m-%d')
+        range_end = datetime.strptime(end_date, '%Y-%m-%d')
+
+        # Filter the data within the start and end date
+        filtered_data = {}
+        for date_str, values in time_series.items():
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S' if " " in date_str else '%Y-%m-%d' )
+            if range_start <= date_obj <= range_end:
+                filtered_data[date_str] = values
+
+        # If filtered_data is empty then give range of available dates
+        if not filtered_data:
+            print("No data for the selected date range.")
+            #This lists all the possible dates they can choose (its a lot of dates)
+            #only use for testing
+            print(sorted(time_series.keys()))
+
+        # For error checking
+        print(filtered_data)
+        return filtered_data
 
 
 # Create the generate_graph function that takes all the information the user has selected and creates a graph
