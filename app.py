@@ -1,5 +1,7 @@
 import requests
-import datetime 
+from datetime import datetime
+import pygal
+import lxml
 API_KEY = "HXPV2NBRKN9JZJCK"
 # Create stock_symbol function that asks which company's stock the user wishes to see
 # Compare their choice with what is in the database and make sure it exists
@@ -7,6 +9,7 @@ API_KEY = "HXPV2NBRKN9JZJCK"
 
 def stock_symbol():
     while True:
+        #API_KEY = "demo"
     # Ask the user which companys stock they want to see
         company = input("Which company's stock do you want to see? ")
         url = f"https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords={company}&apikey={API_KEY}"
@@ -17,6 +20,7 @@ def stock_symbol():
             return symbol
         else:
             print("No matches found. Please check spelling and try again.")
+            continue
     # Compare their choice with what is in the database and make sure it exists
     # If it does exist return the symbol as a string
     # If it does not exist ask the user to check their spelling/capitalization and try again
@@ -96,7 +100,7 @@ def date_choice(function, symbol, api_key):
             print("No data found for that date range. Please choose a different range.")
             continue
 
-        return start_input, end_input, data
+        return data
 
         
 
@@ -110,12 +114,12 @@ def app_data(function, symbol, start_date, end_date, api_key):
 
     #for testing use this 
     #Intraday is  a premimum end point meaning you must use 'demo' key to get results
-    api_key="demo"
+    #api_key="demo"
     if function == "TIME_SERIES_INTRADAY":
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey=demo'
+        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey={api_key}'
         r = requests.get(url)
         data = r.json()
-        
+        #print(data)
         #Extract the correct time series key
         time_series = data.get("Time Series (5min)", {})
         
@@ -127,7 +131,7 @@ def app_data(function, symbol, start_date, end_date, api_key):
         url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={api_key}'
         r = requests.get(url)
         data = r.json()
-
+        #print(data)
         # Get common keys for daily, weekly, and monthly
         time_series = (
             data.get("Time Series (Daily)") or
@@ -161,8 +165,52 @@ def app_data(function, symbol, start_date, end_date, api_key):
 # Create the generate_graph function that takes all the information the user has selected and creates a graph
 # That displays on the users default browser 
 
-def generate_graph(chart, data):
+def generate_graph(chart, data, time_series_choice, symbol):
+    #Sort the data keys which is the dates and then store them in a list called dates
+    sorted_dates = sorted(data.keys())
+    # Create empty lists for dates, open, close, high, low
+    dates = []
+    open_prices = []
+    close_prices = []
+    high_prices = []
+    low_prices = []
+    
 
+    #Loop through each date in sorted date and add the values to each list
+
+    for date in sorted_dates:
+        values = data[date]
+        dates.append(date[:10])
+        open_prices.append(float(values["1. open"]))
+        high_prices.append(float(values["2. high"]))
+        low_prices.append(float(values["3. low"]))
+        close_prices.append(float(values["4. close"]))
+        
+    #If chart is equal to "1" create a line chart
+    if chart == "1":
+        line_chart = pygal.Line()
+        line_chart.title =f'{time_series_choice} for {symbol}'
+        line_chart.x_labels = dates
+        line_chart.add("Open", open_prices)
+        line_chart.add("High", high_prices)
+        line_chart.add("Low", low_prices)
+        line_chart.add("Close", close_prices)
+        
+
+        line_chart.render_in_browser()
+    #if the chart is equal to "2" then create a bar chart
+    elif chart == "2":
+        bar_chart = pygal.Bar()
+        bar_chart.title =f'{time_series_choice} for {symbol}'
+        bar_chart.x_labels = dates
+        bar_chart.add("Open", open_prices)
+        bar_chart.add("High", high_prices)
+        bar_chart.add("Low", low_prices)
+        bar_chart.add("Close", close_prices)
+
+        bar_chart.render_in_browser()
+        
+    
     return
 
 
@@ -171,15 +219,17 @@ def main():
     while(True):
         # Call the function stock_symbol and store the data in symbol value
         symbol = stock_symbol()
+        
         # Call the function chart and store the data in chart value
         chart_choice = chart()
+        
         # Call the function time_series  and store the data in a time_series value
         time_series_choice = time_series()
 
         # Call the function date_choice and store the dates in two different values: start_date, end_date
         data = date_choice(time_series_choice, symbol, API_KEY)
         # Call the function generate_graph
-        generate_graph(chart_choice, data)
+        generate_graph(chart_choice, data, time_series_choice, symbol)
         # Ask the user if they wish to continue
         user_choice = input("Do you wish to continue (y/n): ")
         # If they press y or Y then loop back through the program
