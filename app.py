@@ -1,4 +1,5 @@
 import requests
+import datetime 
 API_KEY = "HXPV2NBRKN9JZJCK"
 # Create stock_symbol function that asks which company's stock the user wishes to see
 # Compare their choice with what is in the database and make sure it exists
@@ -118,9 +119,9 @@ def main():
         time_series_choice = time_series()
 
         # Call the function date_choice and store the dates in two different values: start_date, end_date
-        data = date_choice_function()
+        data = date_choice(time_series_choice, symbol, API_KEY)
         # Call the function generate_graph
-        generate_graph(chart, data)
+        generate_graph(chart_choice, data)
         # Ask the user if they wish to continue
         user_choice = input("Do you wish to continue (y/n): ")
         # If they press y or Y then loop back through the program
