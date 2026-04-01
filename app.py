@@ -38,20 +38,25 @@ def time_series():
 # Create the generate_graph function that takes all the information the user has selected and creates a graph
 # That displays on the users default browser 
 
+def generate_graph(chart, data):
+
+    return
+
+
 
 def main():
     while(True):
         # Call the function stock_symbol and store the data in symbol value
         
         # Call the function chart and store the data in chart value
-
+        chart = chart_function()
         # Call the function time_series  and store the data in a time_series value
         time_series_choice = time_series()
 
         # Call the function date_choice and store the dates in two different values: start_date, end_date
-
+        data = date_choice_function()
         # Call the function generate_graph
-        
+        generate_graph(chart, data)
         # Ask the user if they wish to continue
         user_choice = input("Do you wish to continue (y/n): ")
         # If they press y or Y then loop back through the program
