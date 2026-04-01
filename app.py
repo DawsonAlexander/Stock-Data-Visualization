@@ -49,15 +49,16 @@ def app_data(function, symbol, start_date, end_date, api_key):
     # If the function selected is Intraday then have the url have an interval of 5mins
 
     #for testing use this 
+    #Intraday is  a priemum end point meaning you must use 'demo' key to get results
     api_key="demo"
     if function == "TIME_SERIES_INTRADAY":
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey={api_key}'
+        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey=demo'
         r = requests.get(url)
         data = r.json()
         
         #Extract the correct time series key
         time_series = data.get("Time Series (5min)", {})
-
+        
         # For error checking
         print(time_series)
         return time_series
