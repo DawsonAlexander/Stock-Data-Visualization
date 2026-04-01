@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
-#api_key="HXPV2NBRKN9JZJCK"
-api_key = "demo"
+api_key="HXPV2NBRKN9JZJCK"
+
 # Create stock_symbol function that asks which company's stock the user wishes to see
 # Compare their choice with what is in the database and make sure it exists
 # Return the symbol as a string
@@ -38,33 +38,6 @@ def time_series():
 # make sure that the end date is not before the start date
 # In the date_choice function run the app_data function and if the app_data returns empty prompt the user to input new dates
 
-def date_choice(function, symbol, api_key):
-    while(True):
-        # if function == "TIME_SERIES_INTRADAY":
-            # data = app_data(function, symbol, start_date, end_date, api_key)
-        # else:
-        start_date = input("Please enter the start date (yyyy-mm-dd): ")
-        end_date = input("Please enter the end date (yyyy-mm-dd): ")
-        try:
-            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-            end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-        except ValueError:
-            print("Invalid Format! Please enter the correct format.")
-            continue
-
-        #Check if end date is before start date.
-        if end_dt < start_dt:
-            print("End date cannot be before start date enter valid dates.")
-            continue
-
-        data = app_data(function, symbol, start_date, end_date, api_key)
-
-        if not data:
-            print("Please enter new dates.")
-            continue
-
-        return data
-
         
 
     
@@ -81,7 +54,9 @@ def app_data(function, symbol, start_date, end_date, api_key):
         
         #Extract the correct time series key
         time_series = data.get("Time Series (5min)", {})
-        print(time_series)
+
+        # For error checking
+        #print(time_series)
         return time_series
     
     else:
@@ -110,8 +85,11 @@ def app_data(function, symbol, start_date, end_date, api_key):
         # If filtered_data is empty then give range of available dates
         if not filtered_data:
             print("No data for the selected date range.")
-            print(sorted(time_series.keys()))
-        print(filtered_data)
+            #This lists all the possible dates they can choose (its a lot of dates)
+            #print(sorted(time_series.keys()))
+
+        # For error checking
+        #print(filtered_data)
         return filtered_data
 
 
@@ -122,7 +100,7 @@ def app_data(function, symbol, start_date, end_date, api_key):
 def main():
     while(True):
         # Call the function stock_symbol and store the data in symbol value
-        symbol = "IBM"
+        symbol=stock_symbol()
         # Call the function chart and store the data in chart value
 
         # Call the function time_series  and store the data in a time_series value
