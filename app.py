@@ -1,3 +1,7 @@
+import requests
+from datetime import datetime
+#api_key="HXPV2NBRKN9JZJCK"
+api_key = "demo"
 # Create stock_symbol function that asks which company's stock the user wishes to see
 # Compare their choice with what is in the database and make sure it exists
 # Return the symbol as a string
@@ -13,7 +17,7 @@ def time_series():
     # ask the user for either 1,2,3,4
     # if not prompt them again
     while(True):
-        print("-----------------\nChoose an option:\n1)Intra day\n2)Daily\n3)Weekly\n4)Monthly")
+        print("-----------------\nChoose an option:\n1)Intra Day\n2)Daily\n3)Weekly\n4)Monthly")
         time_series_choice = input("Please make a selection: ")
         if time_series_choice == "1":
             return "TIME_SERIES_INTRADAY"
@@ -32,7 +36,83 @@ def time_series():
 # Create the date_choice function that prompts the user to enter both the start and end date of the data 
 # make sure that it is in yyyy-mm-dd format
 # make sure that the end date is not before the start date
+# In the date_choice function run the app_data function and if the app_data returns empty prompt the user to input new dates
 
+def date_choice(function, symbol, api_key):
+    while(True):
+        # if function == "TIME_SERIES_INTRADAY":
+            # data = app_data(function, symbol, start_date, end_date, api_key)
+        # else:
+        start_date = input("Please enter the start date (yyyy-mm-dd): ")
+        end_date = input("Please enter the end date (yyyy-mm-dd): ")
+        try:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        except ValueError:
+            print("Invalid Format! Please enter the correct format.")
+            continue
+
+        #Check if end date is before start date.
+        if end_dt < start_dt:
+            print("End date cannot be before start date enter valid dates.")
+            continue
+
+        data = app_data(function, symbol, start_date, end_date, api_key)
+
+        if not data:
+            print("Please enter new dates.")
+            continue
+
+        return data
+
+        
+
+    
+
+
+# Create a app_data function that gets the stock data from alpha vantage using the symbol and function the user selected 
+# and return it to the main function
+def app_data(function, symbol, start_date, end_date, api_key):
+    # If the function selected is Intraday then have the url have an interval of 5mins
+    if function == "TIME_SERIES_INTRADAY":
+        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey={api_key}'
+        r = requests.get(url)
+        data = r.json()
+        
+        #Extract the correct time series key
+        time_series = data.get("Time Series (5min)", {})
+        print(time_series)
+        return time_series
+    
+    else:
+        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={api_key}'
+        r = requests.get(url)
+        data = r.json()
+
+        # Get common keys for daily, weekly, and monthly
+        time_series = (
+            data.get("Time Series (Daily)") or
+            data.get("Weekly Time Series") or 
+            data.get("Monthly Time Series") or {}
+        )
+
+        # Make sure it is in yyyy-mm-dd format
+        range_start = datetime.strptime(start_date, '%Y-%m-%d')
+        range_end = datetime.strptime(end_date, '%Y-%m-%d')
+
+        # Filter the data within the start and end date
+        filtered_data = {}
+        for date_str, values in time_series.items():
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S' if " " in date_str else '%Y-%m-%d' )
+            if range_start <= date_obj <= range_end:
+                filtered_data[date_str] = values
+
+        # If filtered_data is empty then give range of available dates
+        if not filtered_data:
+            print("No data for the selected date range.")
+            print(sorted(time_series.keys()))
+        print(filtered_data)
+        return filtered_data
 
 
 # Create the generate_graph function that takes all the information the user has selected and creates a graph
@@ -42,14 +122,16 @@ def time_series():
 def main():
     while(True):
         # Call the function stock_symbol and store the data in symbol value
-        
+        symbol = "IBM"
         # Call the function chart and store the data in chart value
 
         # Call the function time_series  and store the data in a time_series value
         time_series_choice = time_series()
 
-        # Call the function date_choice and store the dates in two different values: start_date, end_date
-
+        # Call the function date_choice and store the filtered data in a data value and send it to the generate_graph 
+        data = date_choice(time_series_choice, symbol, api_key)
+        # Call the function app_data and store it in a data value and send it to the generate_graph 
+        
         # Call the function generate_graph
         
         # Ask the user if they wish to continue
