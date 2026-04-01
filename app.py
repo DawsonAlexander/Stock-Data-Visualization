@@ -47,6 +47,9 @@ def time_series():
 # and return it to the main function
 def app_data(function, symbol, start_date, end_date, api_key):
     # If the function selected is Intraday then have the url have an interval of 5mins
+
+    #for testing use this 
+    api_key="demo"
     if function == "TIME_SERIES_INTRADAY":
         url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey={api_key}'
         r = requests.get(url)
@@ -56,7 +59,7 @@ def app_data(function, symbol, start_date, end_date, api_key):
         time_series = data.get("Time Series (5min)", {})
 
         # For error checking
-        #print(time_series)
+        print(time_series)
         return time_series
     
     else:
@@ -86,10 +89,11 @@ def app_data(function, symbol, start_date, end_date, api_key):
         if not filtered_data:
             print("No data for the selected date range.")
             #This lists all the possible dates they can choose (its a lot of dates)
-            #print(sorted(time_series.keys()))
+            #only use for testing
+            print(sorted(time_series.keys()))
 
         # For error checking
-        #print(filtered_data)
+        print(filtered_data)
         return filtered_data
 
 
@@ -100,15 +104,22 @@ def app_data(function, symbol, start_date, end_date, api_key):
 def main():
     while(True):
         # Call the function stock_symbol and store the data in symbol value
-        symbol=stock_symbol()
+        #symbol=stock_symbol()
+
+        # For testing
+        symbol="IBM"
         # Call the function chart and store the data in chart value
 
         # Call the function time_series  and store the data in a time_series value
         time_series_choice = time_series()
 
         # Call the function date_choice and store the filtered data in a data value and send it to the generate_graph 
-        data = date_choice(time_series_choice, symbol, api_key)
-        # Call the function app_data and store it in a data value and send it to the generate_graph 
+        # data = date_choice(time_series_choice, symbol, api_key)
+
+        #For testing
+        start_date = "2026-02-06"
+        end_date = "2026-03-02"
+        data = app_data(time_series_choice, symbol, start_date, end_date, api_key)
         
         # Call the function generate_graph
         
