@@ -1,3 +1,6 @@
+import requests
+from datetime import datetime
+API_KEY = "HXPV2NBRKN9JZJCK"
 # Create stock_symbol function that asks which company's stock the user wishes to see
 # Compare their choice with what is in the database and make sure it exists
 # Return the symbol as a string
@@ -66,6 +69,7 @@ def main():
         # Call the function time_series  and store the data in a time_series value
 
         # Call the function date_choice and store the dates in two different values: start_date, end_date
+        data = date_choice(time_series_choice, symbol, API_KEY)
 
         # Call the function generate_graph
 
