@@ -124,7 +124,7 @@ def app_data(function, symbol, start_date, end_date, api_key):
         time_series = data.get("Time Series (5min)", {})
         
         # For error checking
-        print(time_series)
+        #print(time_series)
         return time_series
     
     else:
