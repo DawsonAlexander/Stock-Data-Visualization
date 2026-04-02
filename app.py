@@ -116,7 +116,7 @@ def app_data(function, symbol, start_date, end_date, api_key):
     #Intraday is  a premimum end point meaning you must use 'demo' key to get results
     #api_key="demo"
     if function == "TIME_SERIES_INTRADAY":
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey={api_key}'
+        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey=demo'
         r = requests.get(url)
         data = r.json()
         #print(data)
@@ -155,10 +155,10 @@ def app_data(function, symbol, start_date, end_date, api_key):
             print("No data for the selected date range.")
             #This lists all the possible dates they can choose (its a lot of dates)
             #only use for testing
-            print(sorted(time_series.keys()))
+            #print(sorted(time_series.keys()))
 
         # For error checking
-        print(filtered_data)
+        #print(filtered_data)
         return filtered_data
 
 
