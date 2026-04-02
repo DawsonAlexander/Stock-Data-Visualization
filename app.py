@@ -11,7 +11,7 @@ def stock_symbol():
     while True:
         #API_KEY = "demo"
     # Ask the user which companys stock they want to see
-        company = input("Which company's stock do you want to see? ")
+        company = input("Which company's stock do you want to see?(If you want intraday data use IBM It is the only one avaliable.) ")
         url = f"https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords={company}&apikey={API_KEY}"
         r = requests.get(url)
         data = r.json()
