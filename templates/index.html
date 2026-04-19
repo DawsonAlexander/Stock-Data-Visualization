@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Company Stock Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="div-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}
+            <form action="{{ url_for('index') }}" method="POST">
+                <label for="Stock_Symbol">Choose a Stock Symbol:</label><br>
+                <select id="Stock_Symbol" name="Stock_Symbol">
+                    {% for stock in stock_symbol %}
+                        <option value="{{ stock['Symbol'] }}">{{ stock['Symbol'] }}</option>
+                    {% endfor %}
+                </select>
+                <label for="Chart_Type">Choose a Chart Type:</label><br>
+                <select id="Chart_Type" name="Chart_Type">
+                    <option value="Bar">Bar</option>
+                    <option value="Line">Line</option>
+                </select>
+                <label for="function">Choose a function:</label><br>
+                <select id="function" name="function">
+                    <option value="INTRADAY">Intraday</option>
+                    <option value="DAILY">Daily</option>
+                    <option value="WEEKLY">Weekly</option>
+                    <option value="MONTHLY">Monthly</option>
+                </select>
+                <label for="start_date">Start Date</label><br>
+                <input type="date" id="start_date" name="start_date">
+                <label for="end_date">End Date</label><br>
+                <input type="date" id="end_date" name="end_date">
+                <input type="submit" value="Generate">
+                <h1>Stock Chart</h1>
+                <img src="{{ graph }}">
+            </form>
+        {% endblock %}
+    </div>
+</body>
+</html>

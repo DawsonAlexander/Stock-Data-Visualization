@@ -2,10 +2,70 @@ import requests
 from datetime import datetime
 import pygal
 import lxml
+import csv
+from flask import Flask, render_template, request, flash, redirect, url_for
 API_KEY = "HXPV2NBRKN9JZJCK"
 # Create stock_symbol function that asks which company's stock the user wishes to see
 # Compare their choice with what is in the database and make sure it exists
 # Return the symbol as a string
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'
+
+@app.route('/', methods=['GET'])
+def index():
+    with open('stocks.csv', mode='r', newline='') as file:
+        reader =csv.DictReader(file)
+        stocks = list(reader)
+    return render_template('index.html', stock_symbol=stocks)
+
+@app.route('/', methods=['POST'])
+def index_post():
+    now = datetime.now()
+    symbol = request.form.get('Stock_Symbol')
+    chart = request.form.get('Chart_Type')
+    function=request.form.get('function')
+    start_date_str = request.form.get('start_date')
+    end_date_str = request.form.get('end_date')
+
+    if not symbol:
+        flash('Symbol is required.', 'error')
+        return redirect(url_for('index'))
+    if not chart:
+        flash('Chart is required.', 'error')
+        return redirect(url_for('index'))
+    if not function:
+        flash('Function is required.', 'error')
+        return redirect(url_for('index'))
+    if not start_date_str:
+        flash('Start Date is required.', 'error')
+        return redirect(url_for('index'))
+    if not end_date_str:
+        flash('End Date is required.', 'error')
+        return redirect(url_for('index'))
+
+    try:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    except ValueError:
+        flash('Invalid date format.', 'error')
+        return redirect(url_for('index'))    
+
+    if start_date > end_date:
+        flash('Start date cannot be after end date.' , 'error')
+        return redirect(url_for('index'))
+    
+    if start_date > now or end_date > now:
+        flash('Start date or End Date cannot be after the current date', 'error')
+        return redirect(url_for('index'))
+    
+    data = app_data(function, symbol, start_date, end_date, API_KEY)
+    graph = generate_graph(chart, data, function, symbol)
+    with open('stocks.csv', mode='r', newline='') as file:
+        reader =csv.DictReader(file)
+        stocks = list(reader)
+    return render_template('index.html',stock_symbol=stocks, graph=graph)
+    
+
 
 def stock_symbol():
     while True:
@@ -116,7 +176,7 @@ def app_data(function, symbol, start_date, end_date, api_key):
     #Intraday is  a premimum end point meaning you must use 'demo' key to get results
     #api_key="demo"
     if function == "TIME_SERIES_INTRADAY":
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&interval=5min&apikey=demo'
+        url = f'https://www.alphavantage.co/query?function=TIME_SERIES_{function}&symbol={symbol}&interval=5min&apikey=demo'
         r = requests.get(url)
         data = r.json()
         #print(data)
@@ -128,7 +188,7 @@ def app_data(function, symbol, start_date, end_date, api_key):
         return time_series
     
     else:
-        url = f'https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={api_key}'
+        url = f'https://www.alphavantage.co/query?function=TIME_SERIES_{function}&symbol={symbol}&apikey={api_key}'
         r = requests.get(url)
         data = r.json()
         #print(data)
@@ -140,8 +200,8 @@ def app_data(function, symbol, start_date, end_date, api_key):
         )
 
         # Make sure it is in yyyy-mm-dd format
-        range_start = datetime.strptime(start_date, '%Y-%m-%d')
-        range_end = datetime.strptime(end_date, '%Y-%m-%d')
+        range_start = start_date
+        range_end = end_date
 
         # Filter the data within the start and end date
         filtered_data = {}
@@ -187,7 +247,7 @@ def generate_graph(chart, data, time_series_choice, symbol):
         close_prices.append(float(values["4. close"]))
         
     #If chart is equal to "1" create a line chart
-    if chart == "1":
+    if chart == "Line":
         line_chart = pygal.Line()
         line_chart.title =f'{time_series_choice} for {symbol}'
         line_chart.x_labels = dates
@@ -197,9 +257,9 @@ def generate_graph(chart, data, time_series_choice, symbol):
         line_chart.add("Close", close_prices)
         
 
-        line_chart.render_in_browser()
+        return line_chart.render_data_uri()
     #if the chart is equal to "2" then create a bar chart
-    elif chart == "2":
+    elif chart == "Bar":
         bar_chart = pygal.Bar()
         bar_chart.title =f'{time_series_choice} for {symbol}'
         bar_chart.x_labels = dates
@@ -208,7 +268,7 @@ def generate_graph(chart, data, time_series_choice, symbol):
         bar_chart.add("Low", low_prices)
         bar_chart.add("Close", close_prices)
 
-        bar_chart.render_in_browser()
+        return bar_chart.render_data_uri()
         
     
     return
@@ -243,4 +303,4 @@ def main():
 
 # Call the main function
 if __name__ == "__main__":
-    main()
+    app.run(debug=True, port=5019)
