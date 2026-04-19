@@ -13,6 +13,7 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 
 @app.route('/', methods=['GET'])
 def index():
+    #read all of the stock symbols from the csv file
     with open('stocks.csv', mode='r', newline='') as file:
         reader =csv.DictReader(file)
         stocks = list(reader)
@@ -20,13 +21,16 @@ def index():
 
 @app.route('/', methods=['POST'])
 def index_post():
+    #get the current date
     now = datetime.now()
+    #get the stock symbol, the chart type, the function, the start and end date
     symbol = request.form.get('Stock_Symbol')
     chart = request.form.get('Chart_Type')
     function=request.form.get('function')
     start_date_str = request.form.get('start_date')
     end_date_str = request.form.get('end_date')
-
+    
+    #check if each one is empty and flash an error if it is
     if not symbol:
         flash('Symbol is required.', 'error')
         return redirect(url_for('index'))
@@ -43,26 +47,34 @@ def index_post():
         flash('End Date is required.', 'error')
         return redirect(url_for('index'))
 
+    #convert the start and end date into yyyy-mm-dd format
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    #throw an error if it isn't able to conver
     except ValueError:
         flash('Invalid date format.', 'error')
         return redirect(url_for('index'))    
 
+    #Check if start date is after end date
     if start_date > end_date:
         flash('Start date cannot be after end date.' , 'error')
         return redirect(url_for('index'))
-    
+    #Make sure that the start date and end date aren't after the current date
     if start_date > now or end_date > now:
         flash('Start date or End Date cannot be after the current date', 'error')
         return redirect(url_for('index'))
     
+    #get the data with the app_data function
     data = app_data(function, symbol, start_date, end_date, API_KEY)
+    #generate the graph 
     graph = generate_graph(chart, data, function, symbol)
+    #read all of the stock symbols from the csv file
     with open('stocks.csv', mode='r', newline='') as file:
         reader =csv.DictReader(file)
         stocks = list(reader)
+    
+    #render the index.html template and populate the stock symbol for loop and display the graph
     return render_template('index.html',stock_symbol=stocks, graph=graph)
     
 
